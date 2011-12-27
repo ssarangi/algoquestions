@@ -1,0 +1,53 @@
+FInd the maximum sum of a sub-sequence from an positive integer array where any two numbers of sub-sequence are not adjacent to each other in the original sequence. E.g 1 2 3 4 5 6 --> 2 4 6
+
+
+Given a tree, print the values contained at each level on the same line.
+So if you had the tree with root A, and children B and C, you would print:
+A
+B C
+// Use a queue. Insert tree->root.
+// Then while (!queue.empty())
+// take out the node inserted.
+// Insert left child & right child into queue
+// Repeat
+
+
+
+Find the min and max in an array. Now do it in less than 2n comparisons. (they were looking for the solution that finds both max and min in about 3/2 n comparisons).
+
+Compute the square root of a number down to a certain precision.
+ie sqrt(num, precision) returns a number that is in-between sqrt(num) - precision and sqrt(num) + precision.
+
+Given a positive real number x, find the square root of x without using built-in sqrt functions.
+
+Given an array of integers, now we want to erase all 0's (can be other value), and we want the result array condensed, meaning no empty cell in the array.
+
+Given an unsorted array of integers, find a 3-element subset that sums to zero
+
+Write a class providing an LRU cache
+
+given a list of words with a same size and a big string that contains one of the permutation of all the words combined(say p), find the startindex of the string p in the big string
+
+Find a needle in the haystack: given two c-strings (null terminated), return a pointer to the location of where the needle occurs in the haystack, NULL otherwise.
+
+Given a binary tree print the first level, followed by a newline, the second level, followed by a newline, etc.
+
+How can one implement a queue with only a stack implementation?
+
+How would you implement a method to tell whether or not a string matches a regex that consists of lower case letters and *s.
+
+Write the actual code to reverse a linked list
+
+Write the actual code to parse a regular expression including "*", which stands for 0 or more characters, "+", which stands for 1 or more characters, and ".", which stands for 1 exact character.
+
+Generate a new array from an array of numbers. Start from the beginning. Put the number of some number first, and then that number.
+For example, from array 1, 1, 2, 3, 3, 1
+You should get 2, 1, 1, 2, 2, 3, 1, 1
+Write a program to solve this problem.
+
+print out all prime numbers in a given string. abc2134kd31 -> 2, 13, 3, 3
+
+Implement division without using multiplication or division. It should work most efficient and fast.
+
+Implement a suggestion function that generates alternative strings for given password strings like "facebook" => "F@ceß00k" and "fæc€Bo0K" or sth.
+
