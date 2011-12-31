@@ -25,6 +25,18 @@ ie sqrt(num, precision) returns a number that is in-between sqrt(num) - precisio
 
 7) Given an unsorted array of integers, find a 3-element subset that sums to zero
 
+def three_subset_sum(ls):
+   d = {}
+   for elem in ls:
+      d[elem] = elem
+   for i in xrange(len(ls)):
+      for j in xrange(len(ls)):
+         x = -(ls[i]+ls[j])
+         if d.has_key(x):
+            return (ls[i], ls[j], x)
+   return None
+
+
 8) Write a class providing an LRU cache
 
 9) Given a list of words with a same size and a big string that contains one of the permutation of all the words combined(say p), find the startindex of the string p in the big string
