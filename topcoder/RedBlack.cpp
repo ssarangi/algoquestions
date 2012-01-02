@@ -248,7 +248,6 @@ int addNode(Node<T>* &root, T val)
 
     if (node == root)
     {
-        checkTree<int>(root, NULL);
         return twistNeeded;
     }
 
@@ -364,14 +363,10 @@ int addNode(Node<T>* &root, T val)
         newNode = newlocalroot;
 
         twistNeeded += 1;
-
-        checkTree<int>(root, NULL);
     }
 
     // Color the root Black
     root->color = BLACK;
-
-    checkTree<int>(root, NULL);
 
     return twistNeeded;
 }
