@@ -206,7 +206,6 @@ public:
 
             do
             {
-                // int alreadyAddedHeight = height[alreadyAddedHeightsIndex];
                 int alreadyAddedHeight = *currentIter;
 
                 // Now comes the case where the lower elements will try to take over
