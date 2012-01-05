@@ -79,3 +79,15 @@ bool isLess(ld v1, ld v2) {return v1-v2<-EPSILON;}
 ll gcd(ll n1, ll n2) {return n2==0? ABS(n1) : gcd(n2,n1%n2);}
 
 ll lcm(ll n1, ll n2) {return n1==0 && n2==0? 0 : ABS(n1*n2)/gcd(n1,n2);}
+
+
+inline vector<string> tokenize(string s)
+{
+    vector<string> tokens;
+    istringstream iss(s);
+    copy(istream_iterator<string>(iss),
+         istream_iterator<string>(), 
+         back_inserter<vector<string> >(tokens));
+
+    return tokens;
+}
