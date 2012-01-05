@@ -170,7 +170,6 @@ class AvoidRoads
         return paths;
     }
 
-
     long long findPaths(Coord currentPt, Coord prevPoint, int pathLength)
     {
         long long totalNum = 0;
