@@ -1,20 +1,16 @@
 /*
-In the city, roads are arranged in a grid pattern. Each point on the grid represents a corner where two blocks meet. The points are connected by line segments which represent the various street blocks. Using the cartesian coordinate system, we can assign a pair of integers to each corner as shown below. 
+In the city, roads are arranged in a grid pattern. Each point on the grid represents a corner where two blocks meet. The points are 
+connected by line segments which represent the various street blocks. Using the cartesian coordinate system, we can assign a pair of 
+integers to each corner as shown below. 
 
-
-
- 
-
-You are standing at the corner with coordinates 0,0. Your destination is at corner width,height. You will return the number of distinct paths that lead to your destination. Each path must use exactly width+height blocks. In addition, the city has declared certain street blocks untraversable. These blocks may not be a part of any path. You will be given a String[] bad describing which blocks are bad. If (quotes for clarity) "a b c d" is an element of bad, it means the block from corner a,b to corner c,d is untraversable. For example, let's say
+You are standing at the corner with coordinates 0,0. Your destination is at corner width,height. You will return the number of distinct 
+paths that lead to your destination. Each path must use exactly width+height blocks. In addition, the city has declared certain street blocks 
+untraversable. These blocks may not be a part of any path. You will be given a String[] bad describing which blocks are bad. If (quotes for clarity) 
+"a b c d" is an element of bad, it means the block from corner a,b to corner c,d is untraversable. For example, let's say
 width  = 6
 length = 6
 bad = {"0 0 0 1","6 6 5 6"}
 The picture below shows the grid, with untraversable blocks darkened in black. A sample path has been highlighted in red.
-
-
-
- 
-
  
 Definition
     	
@@ -96,6 +92,15 @@ This problem was used for:
 #include <ctime>
 #include <unordered_map>
 
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+
 using namespace std;
 
 typedef long long ll;
@@ -108,11 +113,18 @@ struct Coord
 {
     int x, y;
 
+    Coord() : x(0), y(0) { }
+
     Coord(int a, int b) : x(a), y(b) { }
 
     string getStr() 
     { 
         return string(toString(x) + " " + toString(y)); 
+    }
+
+    bool operator==(const Coord& rhs)
+    {
+        return (x == rhs.x && y == rhs.y);
     }
 };
 
@@ -120,8 +132,11 @@ struct Coord
 class AvoidRoads 
 {
     unordered_map<string, bool> badMap;
+    Coord startPoint;
+    Coord endPoint;
+    int TotalWidth, TotalHeight;
 
-    void initializeMap(int width, int height, vector<string>& bad)
+    void initializeMap(vector<string>& bad)
     {
         for (int i = 0; i < bad.size(); i++)
         {
@@ -129,13 +144,78 @@ class AvoidRoads
         }
     }
 
+    bool isPossible(Coord start, Coord end)
+    {
+        string hash1 = start.getStr() + " " + end.getStr();
+        string hash2 = end.getStr() + " " + start.getStr();
+        if (badMap.count(hash1) == 0 && badMap.count(hash2) == 0)
+            return true;
+
+        return false;
+    }
+
+    vector<Coord> possiblePaths(Coord p, Coord prevPoint)
+    {
+        Coord right = Coord(p.x + 1, p.y);
+        Coord up    = Coord(p.x, p.y + 1);
+
+        vector<Coord> paths;
+
+        if (right.x <= TotalWidth && !(right == prevPoint) && isPossible(p, right))
+            paths.push_back(right);
+
+        if (up.y <= TotalHeight && !(up == prevPoint) && isPossible(p, up))
+            paths.push_back(up);
+        
+        return paths;
+    }
+
+
+    long long findPaths(Coord currentPt, Coord prevPoint, int pathLength)
+    {
+        long long totalNum = 0;
+
+        if (currentPt == endPoint)
+        {
+            if (pathLength == (TotalWidth + TotalHeight))
+                return 1;
+            else
+                return 0;
+        }
+
+        if (pathLength > (TotalWidth + TotalHeight))
+            return 0;
+
+        // Still not the end.
+        vector<Coord> nextPaths = possiblePaths(currentPt, prevPoint);
+        if (nextPaths.size() == 0)
+            return 0;
+
+        for (int i = 0; i < nextPaths.size(); i++)
+        {
+            totalNum += findPaths(nextPaths[i], currentPt, pathLength + 1);
+        }
+
+        return totalNum;
+    }
+
 public:
+
+    AvoidRoads() { }
+
 	long long numWays(int width, int height, vector <string> bad) 
     {
-	    Coord startPt(0, 0);
-        Coord endPt(width, height);
+        TotalWidth = width; TotalHeight = height;
 
+	    startPoint = Coord(0, 0);
+        endPoint = Coord(width, height);
 
+        initializeMap(bad);
+
+        // Now find path by recursion.
+        long long totalPaths = findPaths(startPoint, startPoint, 0);
+
+        return totalPaths;
 	}
 };
 
@@ -195,6 +275,17 @@ int main() {
 	
 	{
 	// ----- test 0 -----
+	p0 = 2;
+	p1 = 2;
+    string t2[] = {"1 1 2 1"};
+			p2.assign(t2, t2 + sizeof(t2) / sizeof(t2[0]));
+	p3 = 4;
+	all_right = KawigiEdit_RunTest(0, p0, p1, p2, true, p3) && all_right;
+	// ------------------
+	}
+
+	{
+	// ----- test 0 -----
 	p0 = 6;
 	p1 = 6;
 	string t2[] = {"0 0 0 1","6 6 5 6"};
@@ -203,7 +294,7 @@ int main() {
 	all_right = KawigiEdit_RunTest(0, p0, p1, p2, true, p3) && all_right;
 	// ------------------
 	}
-	
+
 	{
 	// ----- test 1 -----
 	p0 = 1;
@@ -240,6 +331,7 @@ int main() {
 	} else {
 		cout << "Some of the test cases had errors." << endl;
 	}
+    system("pause");
 	return 0;
 }
 // END KAWIGIEDIT TESTING

@@ -192,9 +192,6 @@ public:
 
         ordering.push_back(height[height.size() - 1]);
 
-        // Now add 0's so that we can move the iterator around.
-        // ordering.push_front(0);
-
         for (int i = height.size() - 2; i >= 0; --i)
         {
             // Start at the beginning and then find where to insert
