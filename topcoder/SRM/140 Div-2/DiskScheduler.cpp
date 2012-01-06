@@ -139,7 +139,7 @@ class DiskSchedulerOld
     }
 
 public:
-	int optimize(int start, vector <int> sectors) 
+	int optimizeDijkstra(int start, vector <int> sectors) 
     {
         priority_queue<Node> pq;
 
@@ -170,108 +170,107 @@ public:
 	}
 };
 
-typedef vector<int> VI;     typedef vector<VI> VVI; 
-typedef vector<string> VS;  typedef vector<VS> VVS; 
-typedef vector<double> VD; 
-typedef pair<int, int> PII; 
-typedef pair<double, double> PDD; 
+class DiskScheduler
+{
+    int getCost(int start, int end, bool& reverse)
+    {
+        if (start > end)
+            swap(start, end);
 
-const double Eps = 1E-10; 
+        int cost = min((end - start), (start - 1) + (100 - end) + 1);
 
-#define ALL(cont) (cont).begin(), (cont).end() 
-#define FORV(vector, var) for (int var = 0; var < (int) (vector).size(); ++var) 
-#define REP(var, n) for (int var = 0; var < (n); ++i) 
-#define pb push_back 
+        if (cost == (end - start))
+            reverse = false;
+        else
+            reverse = true;
 
-template<class T> T gcd(T a, T b) { while (b) { a%=b; swap(a, b); } return a; } 
+        return cost;
+    }
 
-const string LALPHA = "abcdefghijklmnopqrstuvwxyz"; 
-const string UALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
-const string DIGITS = "0123456789"; 
-const string DELIM = " \t\n\r"; 
+    int rotate(int& start, const vector<int>& sectors, int incr, const int start_index, 
+               const int iteration_count, bool& reverse, int& reverse_index,
+               bool ignore_reverse, bool& all_iterations_complete)
+    {
+        int index = start_index;
+        
+        int counter = 0;
 
-enum AddPatt { NOTPATT = 1, PATT = 3, BOTH = 2 }; 
-// splits s into substrings each of which consists solely from chars from patt or 
-//  not from patt and returns those as indicated by add. 
-VS split(const string& s, const string& patt = DELIM, AddPatt add = NOTPATT) { 
-  VS res; 
-  if (s.length() == 0) 
-    return res; 
-  bool inpatt = patt.find(s[0]) != patt.npos; 
-  size_t st = 0; 
-  for (size_t i = 1; i < s.length(); ++i) { 
-    if ((patt.find(s[i]) != patt.npos) != inpatt) { 
-      if ((inpatt && add >= 2) || (!inpatt && add <= 2)) 
-        res.push_back(s.substr(st, i-st)); 
-      inpatt = !inpatt; 
-      st = i; 
-    } 
-  } 
-  if ((inpatt && add >= 2) || (!inpatt && add <= 2)) 
-    res.push_back(s.substr(st)); 
-  return res; 
-} 
+        int cost = 0;
 
-string tolower(string s) { 
-  string res; FORV(s, i) res += tolower(s[i]); return res; 
-} 
+        while (counter != iteration_count && reverse == false)
+        {
+            int tempCost = 0;
+            tempCost = getCost(start, sectors[index], reverse);
 
-//////////////////////////////////////////////////////////////////////////////////////// 
+            if (reverse == true && ignore_reverse == false)
+            {
+                reverse_index = index;
+                break;
+            }
+            else
+                reverse = false;
 
-class DiskScheduler 
-{ 
-public: 
-    VI d; 
+            cost += tempCost;
+            start = sectors[index];
+            index += incr;
+            counter++;
+        }
+        
+        // We didn't need to reverse.
+        all_iterations_complete = true;
+        return cost;
+    }
 
-    int sweep(int pos, int incr, int num) 
-    { 
-        int cnt = 0; 
-        while (num) 
-        { 
-            if (d[pos] == 1) 
-                --num; 
-            pos += incr; 
-            ++cnt; 
-        } 
-        return cnt; 
-    } 
+    int rotate_direction(int start, int incr, const vector<int>& sectors, const int start_index, const int end_index)
+    {
+        int cost = 0;
 
-    int optimize(int start, vector <int> sectors) 
-    { 
-        d.resize(400, 0);
+        bool reverse = false;
 
-        FORV(sectors, i) 
-        { 
-            d[sectors[i]] = 1; 
-            d[sectors[i] + 100] = 1; 
-            d[sectors[i] + 200] = 1; 
-        } 
+        int reverse_index = 0;
 
-        int res = sweep(start + 100, 1, sectors.size()); 
-        res = min(res, sweep(start + 100, -1, sectors.size())); 
-        REP(i, 100) 
-        { 
-            int cnt = 0; 
-            for (int j = 0; j <= i; ++j) 
-            { 
-                if (d[start+100+j] == 1) 
-                    ++cnt; 
-            } 
-            res = min(res, 2*i + sweep(start+100, -1, sectors.size() - cnt)); 
+        // Since 0th index
+        int iteration_count = abs(end_index - start_index) + 1;
 
-            cnt = 0; 
-            for (int j = 0; j <= i; ++j) 
-            { 
-                if (d[start+100-j] == 1) 
-                    ++cnt; 
-            } 
-            res = min(res, 2*i + sweep(start+100, 1, sectors.size() - cnt)); 
-        } 
-        return res - 1; 
-    } 
-}; 
+        bool all_iterations_complete = false;
 
+        cost = rotate(start, sectors, incr, start_index, iteration_count, reverse, reverse_index, false, all_iterations_complete);
 
+        // Since 0th index
+        iteration_count = abs(end_index - reverse_index) + 1;
+
+        reverse = false;
+
+        if (!all_iterations_complete)
+            cost += rotate(start, sectors, incr * -1, end_index, iteration_count, reverse, reverse_index, true, all_iterations_complete);
+
+        return cost;
+    }
+
+    int rotate_cw(int start, const vector<int>& sectors)
+    {
+        int cost = rotate_direction(start, -1, sectors, sectors.size() - 1, 0);
+        return cost;
+    }
+
+    int rotate_ccw(int start, const vector<int>& sectors)
+    {
+        int cost = rotate_direction(start, 1, sectors, 0, sectors.size() - 1);
+        return cost;
+    }
+
+public:
+	int optimize(int start, vector <int> sectors) 
+    {
+        int cost = 0;
+
+        sort(sectors.begin(), sectors.end());
+
+        cost = min(rotate_cw(start, sectors), rotate_ccw(start, sectors));
+
+        return cost;
+    }
+};
 
 // BEGIN KAWIGIEDIT TESTING
 // Generated by KawigiEdit 2.1.4 (beta) modified by pivanof
@@ -325,26 +324,26 @@ int main() {
 	vector <int> p1;
 	int p2;
 	
+	//{
+	//// ----- test 0 -----
+	//p0 = 5;
+	//int t1[] = {6,8,65,71};
+	//		p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
+	//p2 = 46;
+	//all_right = KawigiEdit_RunTest(0, p0, p1, true, p2) && all_right;
+	//// ------------------
+	//}
+	
 	{
-	// ----- test 0 -----
+	// ----- test 1 -----
 	p0 = 5;
-	int t1[] = {6,8,65,71};
+	int t1[] = {55,65,71};
 			p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
-	p2 = 46;
-	all_right = KawigiEdit_RunTest(0, p0, p1, true, p2) && all_right;
+	p2 = 50;
+	all_right = KawigiEdit_RunTest(1, p0, p1, true, p2) && all_right;
 	// ------------------
 	}
 	
-	//{
-	//// ----- test 1 -----
-	//p0 = 5;
-	//int t1[] = {55,65,71};
-	//		p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
-	//p2 = 50;
-	//all_right = KawigiEdit_RunTest(1, p0, p1, true, p2) && all_right;
-	//// ------------------
-	//}
-	//
 	//{
 	//// ----- test 2 -----
 	//p0 = 20;

@@ -91,3 +91,5 @@ inline vector<string> tokenize(string s)
 
     return tokens;
 }
+
+// equal_range(sectors.begin(), sectors.end(), start);
