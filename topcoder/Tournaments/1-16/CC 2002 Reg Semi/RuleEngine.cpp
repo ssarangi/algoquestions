@@ -17,13 +17,41 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <regex>
 
 using namespace std;
 
+struct condition1
+{
+    char symbol;
+    char condition;
+    int value;
+};
 
-class RuleEngine {
+struct condition2
+{
+    char symbol;
+    int value1;
+    int value2;
+};
+
+condition1 matchCondition1(string str)
+{
+    cmatch res;
+    regex rx("");
+    regex_match(str.c_str(), res, rx);
+}
+
+condition2 matchCondition2(string str)
+{
+    
+}
+
+class RuleEngine 
+{
 public:
-	string countSets(vector <string> param0, vector <string> param1) {
+	string countSets(vector <string> param0, vector <string> param1) 
+    {
 		
 	}
 };
