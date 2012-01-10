@@ -23,8 +23,25 @@ using namespace std;
 
 class DiceChecker {
 public:
-	vector <int> badValues(vector <int> param0) {
-		
+	vector <int> badValues(vector <int> param0) 
+    {
+	    vector<int> results;
+        int element[7];
+        memset(element, 0, 7 * sizeof(int));
+
+        for (int i = 0; i < param0.size(); i++)
+        {
+            element[param0[i]]++;
+        }
+
+        for (int i = 1; i <= 6; ++i)
+        {
+            double prob = element[i] / (double)param0.size();
+            if (prob < 0.1 || prob > 0.25)
+                results.push_back(i);
+        }
+
+        return results;
 	}
 };
 
@@ -100,7 +117,11 @@ int main() {
 	all_right = true;
 	
 	vector <int> p0;
-	vector <int> p1;
+    int values[] = { 1, 1, 3, 3, 4, 4, 2, 2, 5, 5, 6, 6 };
+    p0.assign(values, values + 12);
+
+    DiceChecker d;
+    vector<int> results = d.badValues(p0);
 	
 	if (all_right) {
 		cout << "You're a stud (at least on the example cases)!" << endl;
