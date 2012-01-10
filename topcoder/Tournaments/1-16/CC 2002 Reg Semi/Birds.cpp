@@ -20,6 +20,8 @@
 
 using namespace std;
 
+typedef long long ll;
+
 ll toInt(string s) {stringstream in(s, ios_base::in); ll result; in >> result; return result;}
 
 vector<string> &split(const string &s, char delim, vector<string> &elems) 
@@ -52,12 +54,69 @@ BirdStruct getBirdStruct(string param)
     BirdStruct bs;
     bs.x     = (int)toInt(arr[0]);
     bs.y     = (int)toInt(arr[1]);
-    bs.day   = (int)toInt(arr[2]);
-    bs.month = (int)toInt(arr[3]);
+    bs.month = (int)toInt(arr[2]);
+    bs.day   = (int)toInt(arr[3]);
 
     return bs;
 }
 
+bool operator<(const BirdStruct& b1, const BirdStruct& b2)
+{
+    if (b1.month > b2.month || (b1.month <= b2.month && b1.day > b2.day))
+        return false;
+
+    return true;
+}
+
+int getNumDaysInMonth(int month)
+{
+    switch(month)
+    {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+        return 31;
+        break;
+
+    case 2:
+        return 28;
+        break;
+
+    default:
+        return 30;
+        break;
+    }
+}
+
+int getNumDays(int m1, int d1, int m2, int d2)
+{
+    if (m2 == m1)
+        return (d2 - d1 + 1);
+
+    int current_month = m1;
+    int num_days = 0;
+    int starting_date = d1;
+    while ((m2 - current_month) > 1)
+    {
+        int numDaysInMonth = getNumDaysInMonth(current_month);
+        num_days += numDaysInMonth - starting_date;
+        starting_date = 0;
+        current_month++;
+    }
+
+    num_days += d2;
+
+    return num_days;
+}
+
+double getDistance(int x1, int y1, int x2, int y2)
+{
+    return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+}
 
 
 class Birds 
@@ -65,8 +124,41 @@ class Birds
 public:
     int isMigratory(vector <string> param0) 
     {
+        vector<BirdStruct> birds;
+        vector<pair<int, int> > coordinates;
 
+        for (unsigned int i = 0; i < param0.size(); i++)
+            birds.push_back(getBirdStruct(param0[i]));
 
+        sort(birds.begin(), birds.end());
+
+        // Add all the coordinates which satisfy the 90 day period
+        for (unsigned int i = 1; i < birds.size(); i++)
+        {
+            int numDays = getNumDays(birds[i-1].month, birds[i-1].day, birds[i].month, birds[i].day);
+            if (numDays >= 90)
+                coordinates.push_back(make_pair(birds[i-1].x, birds[i-1].y));
+        }
+
+        // Now find the distance for the last one
+        int numDays = getNumDays(birds[birds.size()-1].month, birds[birds.size()-1].day, 12, 31);
+        if (numDays >= 90)
+            coordinates.push_back(make_pair(birds[birds.size()-1].x, birds[birds.size()-1].y));
+
+        // Now loop through all the distances
+        for (unsigned int i = 0; i < coordinates.size(); i++)
+        {
+            for (unsigned int j = 0; j < coordinates.size(); j++)
+            {
+                if (i == j)
+                    continue;
+
+                if (getDistance(coordinates[i].first, coordinates[i].second, coordinates[j].first, coordinates[j].second) >= 1000.0)
+                    return 1;
+            }
+        }
+
+        return 0;
     }
 };
 
@@ -120,7 +212,17 @@ int main() {
     all_right = true;
 
     vector <string> p0;
-    int p1;
+    
+    string results[] = { "0,0,1,1", "1000,1000,6,1" };
+    p0.assign(results, results + 2);
+
+    string results1[] = {"200,400,7,1", "100,0,1,1", "200,200,3,1", "0,400,11,1", "407,308,5,1",
+"100,600,9,1" };
+    p0.clear();
+    p0.assign(results1, results1 + 2);
+
+    Birds b;
+    int result = b.isMigratory(p0);
 
     if (all_right) {
         cout << "You're a stud (at least on the example cases)!" << endl;

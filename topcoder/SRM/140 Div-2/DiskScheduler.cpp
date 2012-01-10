@@ -172,103 +172,56 @@ public:
 
 class DiskScheduler
 {
-    int getCost(int start, int end, bool& reverse)
+    vector<int> d;
+
+    int sweep(int pos, int incr, int num)
     {
-        if (start > end)
-            swap(start, end);
+        int count = 0;
 
-        int cost = min((end - start), (start - 1) + (100 - end) + 1);
-
-        if (cost == (end - start))
-            reverse = false;
-        else
-            reverse = true;
-
-        return cost;
-    }
-
-    int rotate(int& start, const vector<int>& sectors, int incr, const int start_index, 
-               const int iteration_count, bool& reverse, int& reverse_index,
-               bool ignore_reverse, bool& all_iterations_complete)
-    {
-        int index = start_index;
-        
-        int counter = 0;
-
-        int cost = 0;
-
-        while (counter != iteration_count && reverse == false)
+        while (num)
         {
-            int tempCost = 0;
-            tempCost = getCost(start, sectors[index], reverse);
+            if (d[pos] == 1)
+                --num;
 
-            if (reverse == true && ignore_reverse == false)
-            {
-                reverse_index = index;
-                break;
-            }
-            else
-                reverse = false;
-
-            cost += tempCost;
-            start = sectors[index];
-            index += incr;
-            counter++;
+            pos += incr;
+            ++count;
         }
-        
-        // We didn't need to reverse.
-        all_iterations_complete = true;
-        return cost;
+
+        return count;
     }
 
-    int rotate_direction(int start, int incr, const vector<int>& sectors, const int start_index, const int end_index)
-    {
-        int cost = 0;
-
-        bool reverse = false;
-
-        int reverse_index = 0;
-
-        // Since 0th index
-        int iteration_count = abs(end_index - start_index) + 1;
-
-        bool all_iterations_complete = false;
-
-        cost = rotate(start, sectors, incr, start_index, iteration_count, reverse, reverse_index, false, all_iterations_complete);
-
-        // Since 0th index
-        iteration_count = abs(end_index - reverse_index) + 1;
-
-        reverse = false;
-
-        if (!all_iterations_complete)
-            cost += rotate(start, sectors, incr * -1, end_index, iteration_count, reverse, reverse_index, true, all_iterations_complete);
-
-        return cost;
-    }
-
-    int rotate_cw(int start, const vector<int>& sectors)
-    {
-        int cost = rotate_direction(start, -1, sectors, sectors.size() - 1, 0);
-        return cost;
-    }
-
-    int rotate_ccw(int start, const vector<int>& sectors)
-    {
-        int cost = rotate_direction(start, 1, sectors, 0, sectors.size() - 1);
-        return cost;
-    }
 
 public:
 	int optimize(int start, vector <int> sectors) 
     {
-        int cost = 0;
+        d.resize(200, 0);
+        for (int i = 0; i < sectors.size(); i++)
+            d[sectors[i]] = d[sectors[i] + 100] = 1;
 
-        sort(sectors.begin(), sectors.end());
+        // Either Left or right
+        int res = min(sweep(start + 100, 1, sectors.size()), sweep(start + 100, -1, sectors.size()));
 
-        cost = min(rotate_cw(start, sectors), rotate_ccw(start, sectors));
+        for (int i = 0; i < 100; ++i)
+        {
+            int count = 0;
+            for (int j = 0; j <= i; ++j)
+            {
+                if (d[start + 100 + j] == 1)
+                    ++count;
+            }
 
-        return cost;
+            res = min(res, 2 * i + sweep(start + 100, -1, sectors.size() - count));
+
+            for (int j = 0; j <= i; ++j)
+            {
+                if (d[start + 100 - j] == 1)
+                    ++count;
+            }
+
+            res = min(res, 2 * i + sweep(start + 100, 1, sectors.size() - count));
+        }
+
+        return res - 1;
     }
 };
 
@@ -324,25 +277,25 @@ int main() {
 	vector <int> p1;
 	int p2;
 	
-	//{
-	//// ----- test 0 -----
-	//p0 = 5;
-	//int t1[] = {6,8,65,71};
-	//		p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
-	//p2 = 46;
-	//all_right = KawigiEdit_RunTest(0, p0, p1, true, p2) && all_right;
-	//// ------------------
-	//}
-	
 	{
-	// ----- test 1 -----
+	// ----- test 0 -----
 	p0 = 5;
-	int t1[] = {55,65,71};
+	int t1[] = {6,8,65,71};
 			p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
-	p2 = 50;
-	all_right = KawigiEdit_RunTest(1, p0, p1, true, p2) && all_right;
+	p2 = 46;
+	all_right = KawigiEdit_RunTest(0, p0, p1, true, p2) && all_right;
 	// ------------------
 	}
+	
+	//{
+	//// ----- test 1 -----
+	//p0 = 5;
+	//int t1[] = {55,65,71};
+	//		p1.assign(t1, t1 + sizeof(t1) / sizeof(t1[0]));
+	//p2 = 50;
+	//all_right = KawigiEdit_RunTest(1, p0, p1, true, p2) && all_right;
+	//// ------------------
+	//}
 	
 	//{
 	//// ----- test 2 -----
