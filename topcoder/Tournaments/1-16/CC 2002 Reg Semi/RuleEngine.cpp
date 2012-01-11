@@ -21,38 +21,109 @@
 
 using namespace std;
 
-struct condition1
-{
-    char symbol;
-    char condition;
-    int value;
-};
+typedef long long ll;
+ll toInt(string s) {stringstream in(s, ios_base::in); ll result; in >> result; return result;}
 
-struct condition2
+bool test_condition(string condition, int lhs, int rhs, int rhs1)
 {
-    char symbol;
+    if (condition == "==")
+        return lhs == rhs;
+    else if (condition == "<")
+        return lhs < rhs;
+    else if (condition == "<=")
+        return lhs <= rhs;
+    else if (condition == ">")
+        return lhs > rhs;
+    else if (condition == ">=")
+        return lhs >= rhs;
+    else if (condition == "!=")
+        return lhs != rhs;
+    else if (condition == "<>")
+        return (lhs >= rhs && lhs <= rhs1);
+
+    return false;
+}
+
+class condition
+{
+public:
+    string symbol;
+    string bool_condition;
     int value1;
     int value2;
+
+    virtual set<int> testComparison() 
+    {
+        set<int> possibleVals;
+
+        for (int i = -9; i <= 9; ++i)
+        {
+            if (test_condition(bool_condition, i, value1, value2))
+                possibleVals.insert(i);
+        }
+
+        return possibleVals;
+    }
 };
 
-condition1 matchCondition1(string str)
+condition matchCondition(string str)
 {
     cmatch res;
-    regex rx("");
-    regex_match(str.c_str(), res, rx);
+    regex rx1("(\\w)(\\.+)(-?[0-9])");
+    rx1 = regex("(\\w)(\\.)(\\d)");
+    regex rx2("(\\w)B(-?[0-9])(-?[0-9])");
+    bool res1 = regex_match(str.c_str(), res, rx1);
+
+    condition c;
+    if (res1)
+    {
+        c.symbol = res[0];
+        c.bool_condition = res[1];
+        c.value1 = (int)toInt(res[2]);
+        c.value2 = -1;
+
+        return c;
+    }
+
+
+    if (!res1)
+    {
+        bool res2 = regex_match(str.c_str(), res, rx2);
+        c.symbol = res[0];
+        c.bool_condition = "<>";
+        c.value1 = (int)toInt(res[1]);
+        c.value2 = (int)toInt(res[2]);
+    }
+
+    return c;
 }
 
-condition2 matchCondition2(string str)
+struct RuleSet
 {
-    
-}
+    vector<condition> rules;
+};
+
 
 class RuleEngine 
 {
 public:
 	string countSets(vector <string> param0, vector <string> param1) 
     {
-		
+		RuleSet rule_set1, rule_set2;
+
+        for (int i = 0; i < param0.size(); ++i)
+        {
+            condition c = matchCondition(param0[i]);
+            rule_set1.rules.push_back(c);
+        }
+
+        for (int i = 0; i < param1.size(); ++i)
+        {
+            condition c = matchCondition(param1[i]);
+            rule_set2.rules.push_back(c);
+        }
+
+        return 0;
 	}
 };
 
@@ -115,6 +186,15 @@ int main() {
 	vector <string> p0;
 	vector <string> p1;
 	string p2;
+
+    string ruleset1[] = { "A<1", "B==2", "C>4", "D>=6", "E<=9", "FB1,2", "J!=6" };
+    string ruleset2[] = { "E>9" };
+
+    p0.assign(ruleset1, ruleset1 + 7);
+    p1.assign(ruleset2, ruleset2 + 1);
+
+    RuleEngine re;
+    p2 = re.countSets(p0, p1);
 	
 	if (all_right) {
 		cout << "You're a stud (at least on the example cases)!" << endl;
