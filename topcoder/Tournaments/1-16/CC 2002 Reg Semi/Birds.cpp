@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <assert.h>
 
 using namespace std;
 
@@ -100,7 +101,7 @@ int getNumDays(int m1, int d1, int m2, int d2)
     int current_month = m1;
     int num_days = 0;
     int starting_date = d1;
-    while ((m2 - current_month) > 1)
+    while ((m2 - current_month) >= 1)
     {
         int numDaysInMonth = getNumDaysInMonth(current_month);
         num_days += numDaysInMonth - starting_date;
@@ -108,7 +109,10 @@ int getNumDays(int m1, int d1, int m2, int d2)
         current_month++;
     }
 
-    num_days += d2;
+    if (m2 == 12 && d2 == 31)
+        num_days += d2 + 1;
+    else
+        num_days += d2 - 1 + 1; // 1 is for the starting date. -1 is because we can't include the ending date.
 
     return num_days;
 }
@@ -127,8 +131,21 @@ public:
         vector<BirdStruct> birds;
         vector<pair<int, int> > coordinates;
 
+        int current_index = 0;
         for (unsigned int i = 0; i < param0.size(); i++)
-            birds.push_back(getBirdStruct(param0[i]));
+        {
+            // Remove all duplicate entries.
+            BirdStruct bs = getBirdStruct(param0[i]);
+
+            if (birds.empty())
+                birds.push_back(bs);
+
+            if (bs.x == birds[current_index].x && bs.y == birds[current_index].y)
+                continue;
+
+            birds.push_back(bs);
+            current_index++;
+        }
 
         sort(birds.begin(), birds.end());
 
@@ -136,6 +153,7 @@ public:
         for (unsigned int i = 1; i < birds.size(); i++)
         {
             int numDays = getNumDays(birds[i-1].month, birds[i-1].day, birds[i].month, birds[i].day);
+
             if (numDays >= 90)
                 coordinates.push_back(make_pair(birds[i-1].x, birds[i-1].y));
         }
@@ -213,13 +231,10 @@ int main() {
 
     vector <string> p0;
     
-    string results[] = { "0,0,1,1", "1000,1000,6,1" };
-    p0.assign(results, results + 2);
-
-    string results1[] = {"200,400,7,1", "100,0,1,1", "200,200,3,1", "0,400,11,1", "407,308,5,1",
-"100,600,9,1" };
+    
+    string results1[] = {"0,0,1,1", "1,1,3,1", "1000,1000,4,1"};
     p0.clear();
-    p0.assign(results1, results1 + 2);
+    p0.assign(results1, results1 + 3);
 
     Birds b;
     int result = b.isMigratory(p0);
