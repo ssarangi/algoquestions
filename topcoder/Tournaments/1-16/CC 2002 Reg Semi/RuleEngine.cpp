@@ -69,8 +69,7 @@ public:
 condition matchCondition(string str)
 {
     cmatch res;
-    regex rx1("(\\w)(\\.+)(-?[0-9])");
-    rx1 = regex("(\\w)(\\.)(\\d)");
+    regex rx1("(\\w)([<>=!]=?)(-?[0-9])");
     regex rx2("(\\w)B(-?[0-9])(-?[0-9])");
     bool res1 = regex_match(str.c_str(), res, rx1);
 
