@@ -83,7 +83,7 @@ condition matchCondition(string str)
     condition c;
     if (res2)
     {
-        c.symbol = *(std::string(res[1]).c_str());
+        c.symbol = *(string(res[1]).c_str());
         c.bool_condition = "<>";
         c.value1 = (int)toInt(res[2]);
         c.value2 = (int)toInt(res[3]);
