@@ -18,11 +18,17 @@
 #include <cstdlib>
 #include <ctime>
 #include <regex>
+#include <unordered_map>
 
 using namespace std;
 
 typedef long long ll;
 ll toInt(string s) {stringstream in(s, ios_base::in); ll result; in >> result; return result;}
+
+string toString(ll n) {stringstream out(ios_base::out); out << n; return out.str();}
+
+string toString(int n) {return toString((ll)(n));}
+
 
 bool test_condition(string condition, int lhs, int rhs, int rhs1)
 {
@@ -47,19 +53,19 @@ bool test_condition(string condition, int lhs, int rhs, int rhs1)
 class condition
 {
 public:
-    string symbol;
+    char symbol;
     string bool_condition;
     int value1;
     int value2;
 
-    virtual set<int> testComparison() 
+    virtual vector<int> testComparison() 
     {
-        set<int> possibleVals;
+        vector<int> possibleVals;
 
-        for (int i = -9; i <= 9; ++i)
+        for (int i = -10; i <= 10; ++i)
         {
             if (test_condition(bool_condition, i, value1, value2))
-                possibleVals.insert(i);
+                possibleVals.push_back(i);
         }
 
         return possibleVals;
@@ -69,30 +75,29 @@ public:
 condition matchCondition(string str)
 {
     cmatch res;
-    regex rx1("(\\w)(\\.+)(-?[0-9])");
-    rx1 = regex("(\\w)(\\.)(\\d)");
-    regex rx2("(\\w)B(-?[0-9])(-?[0-9])");
-    bool res1 = regex_match(str.c_str(), res, rx1);
+    // regex rx1("(\\w)([><=!][=?])(-?[0-9])");
+    regex rx1("(\\w)([><=!]=?)(-?\\d{1,2})");
+    regex rx2("(\\w)B(-?\\d{1,2}),(-?\\d{1,2})");
+    bool res2 = regex_match(str.c_str(), res, rx2);
 
     condition c;
-    if (res1)
+    if (res2)
     {
-        c.symbol = res[0];
-        c.bool_condition = res[1];
+        c.symbol = *(std::string(res[1]).c_str());
+        c.bool_condition = "<>";
         c.value1 = (int)toInt(res[2]);
-        c.value2 = -1;
+        c.value2 = (int)toInt(res[3]);
 
         return c;
     }
 
-
-    if (!res1)
+    if (!res2)
     {
-        bool res2 = regex_match(str.c_str(), res, rx2);
-        c.symbol = res[0];
-        c.bool_condition = "<>";
-        c.value1 = (int)toInt(res[1]);
-        c.value2 = (int)toInt(res[2]);
+        bool res1 = regex_match(str.c_str(), res, rx1);
+        c.symbol = *(std::string(res[1]).c_str());
+        c.bool_condition = res[2];
+        c.value1 = (int)toInt(res[3]);
+        c.value2 = -1;
     }
 
     return c;
@@ -106,24 +111,73 @@ struct RuleSet
 
 class RuleEngine 
 {
+    vector<vector<vector<int> > > myvec;
+
+    int get_intersection(int symbol_index)
+    {
+        vector<int> results(21);
+        vector<int>::iterator it;
+        vector<int> first;
+
+        first = myvec[symbol_index][0];
+
+        if (myvec[symbol_index].size() == 1)
+        {
+            results = first;
+            return results.size();
+        }
+
+
+        for (int i = 1; i < myvec[symbol_index].size(); i++)
+        {
+            vector<int> newOne = myvec[symbol_index][i];
+            it = set_intersection(first.begin(), first.end(), newOne.begin(), newOne.end(), results.begin());
+            first.clear();
+            first.resize(it - results.begin());
+            copy(results.begin(), it, first.begin());
+        }
+
+        return it - results.begin();
+    }
+
 public:
 	string countSets(vector <string> param0, vector <string> param1) 
     {
-		RuleSet rule_set1, rule_set2;
+        myvec.resize(26);
+
+        int numValues = 1;
 
         for (int i = 0; i < param0.size(); ++i)
         {
             condition c = matchCondition(param0[i]);
-            rule_set1.rules.push_back(c);
+            vector<int> values = c.testComparison();
+            int symbol_index = (int)(c.symbol - 'A');
+
+            if (values.size() != 0)
+                myvec[symbol_index].push_back(values);
         }
 
         for (int i = 0; i < param1.size(); ++i)
         {
             condition c = matchCondition(param1[i]);
-            rule_set2.rules.push_back(c);
+            vector<int> values = c.testComparison();
+            int symbol_index = (int)(c.symbol - 'A');
+
+            if (values.size() != 0)
+                myvec[symbol_index].push_back(values);
         }
 
-        return 0;
+        for (int i = 0; i < 26; ++i)
+        {
+            // Iterate through all symbols found.
+            if (myvec[i].size() == 0)
+                continue;
+
+            int numVals = get_intersection(i);
+            numValues *= numVals;
+        }
+
+        return toString(numValues);
 	}
 };
 
@@ -187,11 +241,12 @@ int main() {
 	vector <string> p1;
 	string p2;
 
-    string ruleset1[] = { "A<1", "B==2", "C>4", "D>=6", "E<=9", "FB1,2", "J!=6" };
-    string ruleset2[] = { "E>9" };
+    // { "A<01", "B==2", "C>4", "D>=2", "E<=9", "FB1,2", "J!=6" }, { "A<9", "B>=2" } - 475200
+    string ruleset1[] = { "A==1", "X>=4", "F<1" };
+    string ruleset2[] = { "X>=5", "ZB2,9" };
 
-    p0.assign(ruleset1, ruleset1 + 7);
-    p1.assign(ruleset2, ruleset2 + 1);
+    p0.assign(ruleset1, ruleset1 + 3);
+    p1.assign(ruleset2, ruleset2 + 2);
 
     RuleEngine re;
     p2 = re.countSets(p0, p1);
