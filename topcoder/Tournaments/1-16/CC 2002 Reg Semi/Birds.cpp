@@ -47,6 +47,17 @@ struct BirdStruct
 {
     int x, y;
     int day, month;
+    bool redundant;
+};
+
+struct Region
+{
+    Region(const BirdStruct& bs)
+    {
+        stops.push_back(bs);
+    }
+
+    vector<BirdStruct> stops;
 };
 
 BirdStruct getBirdStruct(string param)
@@ -125,12 +136,34 @@ double getDistance(int x1, int y1, int x2, int y2)
 
 class Birds 
 {
+    vector<BirdStruct> birds;
+
+    int getNumberOfDays(int index)
+    {
+        if (index == birds.size() - 1)
+            return getNumDays(birds[index].month, birds[index].day, 12, 31);
+        else
+            return getNumDays(birds[index].month, birds[index].day, birds[index+1].month, birds[index+1].day);
+    }
+
+    bool isRegionApart(const Region& reg1, const Region& reg2)
+    {
+        for (int i = 0; i < reg1.stops.size(); ++i)
+        {
+            for (int j = 0; j < reg2.stops.size(); ++j)
+            {
+                if (getDistance(reg1.stops[i].x, reg1.stops[i].y, reg2.stops[j].x, reg2.stops[j].y) < 1000)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+
 public:
     int isMigratory(vector <string> param0) 
     {
-        vector<BirdStruct> birds;
-        vector<pair<int, int> > coordinates;
-
         int current_index = 0;
         for (unsigned int i = 0; i < param0.size(); i++)
         {
@@ -149,29 +182,54 @@ public:
 
         sort(birds.begin(), birds.end());
 
-        // Add all the coordinates which satisfy the 90 day period
-        for (unsigned int i = 1; i < birds.size(); i++)
-        {
-            int numDays = getNumDays(birds[i-1].month, birds[i-1].day, birds[i].month, birds[i].day);
+        // group stops into regions, if two location are less than 1000 miles away from each other
+        // according to the question, it is in the same region
+        for (int i = 1; i < birds.size(); ++i) {
+            if (getDistance(birds[i-1].x, birds[i-1].y, birds[i].x, birds[i].y) < 1000) {
+                // mark redundant stops
+                birds[i].redundant = true;
+            }
+        }        
 
-            if (numDays >= 90)
-                coordinates.push_back(make_pair(birds[i-1].x, birds[i-1].y));
+        vector<Region> regions;
+        for (int i = 0; i < birds.size(); i++)
+        {
+            if (birds[i].redundant == false)
+                regions.push_back(birds[i]);
+            else if (regions.back().stops.back().x != birds[i].x && regions.back().stops.back().y != birds[i].y)
+                regions.back().stops.push_back(birds[i]);
         }
 
-        // Now find the distance for the last one
-        int numDays = getNumDays(birds[birds.size()-1].month, birds[birds.size()-1].day, 12, 31);
-        if (numDays >= 90)
-            coordinates.push_back(make_pair(birds[birds.size()-1].x, birds[birds.size()-1].y));
-
-        // Now loop through all the distances
-        for (unsigned int i = 0; i < coordinates.size(); i++)
+        // Calculate Durations
+        int numDays = 0;
+        vector<int> durations;
+        for (int i = 1; i < regions.size(); ++i)
         {
-            for (unsigned int j = 0; j < coordinates.size(); j++)
-            {
-                if (i == j)
-                    continue;
+            int dur = getNumDays(regions[i-1].stops[0].month, regions[i-1].stops[0].day, regions[i].stops[0].month, regions[i].stops[0].day);
+            durations.push_back(dur);
+            numDays += dur;
+        }
 
-                if (getDistance(coordinates[i].first, coordinates[i].second, coordinates[j].first, coordinates[j].second) >= 1000.0)
+        durations.push_back(365 - numDays);
+
+        // Check duration, we need to stay in 2 places for more than 90 days
+        vector<int> longStays;
+
+        for (int i = 0; i < durations.size(); ++i) 
+        {
+            if (durations[i] >= 90) 
+                longStays.push_back(i);
+        }
+        
+        if (longStays.size() < 2)
+            return 0;
+
+        // calcuate distance between longStays
+        for (int i = 0; i < longStays.size(); ++i) 
+        {
+            for (int j = i+1; j < longStays.size(); ++j) 
+            {
+                if (isRegionApart(regions[i], regions[j]))
                     return 1;
             }
         }
